@@ -28,7 +28,7 @@
 
 <Add any notes about this set of tests here>
 
-#### Mutaiton Operations
+#### Mutation Operations
 
 **Query:**
 

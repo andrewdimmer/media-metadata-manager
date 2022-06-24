@@ -1,6 +1,19 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+
+import { gql } from "graphql-request";
+import { graphqlClient } from "./config/graphqlClient";
+graphqlClient
+  .request(
+    gql`
+      {
+        hello
+      }
+    `
+  )
+  .then((value) => console.log(value))
+  .catch((error) => console.warn(error));
 
 function App() {
   return (
