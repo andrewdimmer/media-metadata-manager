@@ -4,7 +4,7 @@
 
 ### Testing
 
-#### Query Operations
+#### Mutation Operations
 
 **Query:**
 
@@ -28,7 +28,7 @@
 
 <Add any notes about this set of tests here>
 
-#### Mutation Operations
+#### Query Operations
 
 **Query:**
 

@@ -4,6 +4,7 @@ import {
   validateDocDoesNotExistFactory,
   validateDocExistsFactory,
 } from "./validationUtils";
+import { logger } from "firebase-functions";
 
 const genericFirebaseDAO = <T extends DatabaseNode>(
   objectType: string,
@@ -13,7 +14,8 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
   const validateDocExists = validateDocExistsFactory(objectType);
   const validateDocDoesNotExist = validateDocDoesNotExistFactory(objectType);
 
-  const createDocFirestore = async (data: T) => {
+  const createDocFirestore = async (data: T): Promise<T> => {
+    logger.info(`Creating ${objectType} with id=${data.id} in Firestore`);
     const docReference = firebaseCollection.doc(data.id);
     const doc = await docReference.get();
     validateDocDoesNotExist(doc);
@@ -21,7 +23,8 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
     return data;
   };
 
-  const readDocFirestore = async (docId: string) => {
+  const readDocFirestore = async (docId: string): Promise<T> => {
+    logger.info(`Reading ${objectType} with id=${docId} in Firestore`);
     const doc = await firebaseCollection
       .doc(docId)
       .get()
@@ -30,7 +33,10 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
     return doc.data() as T;
   };
 
-  const listDocsFirestore = async () => {
+  const listDocsFirestore = async (): Promise<T[]> => {
+    logger.info(
+      `Listing all documents of object type ${objectType} in Firestore`
+    );
     const docs = await firebaseCollection.get().catch(logAndThrowError);
 
     return docs.docs.map((doc) => {
@@ -38,7 +44,8 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
     });
   };
 
-  const updateDocFirestore = async (data: T) => {
+  const updateDocFirestore = async (data: T): Promise<T> => {
+    logger.info(`Updating ${objectType} with id=${data.id} in Firestore`);
     const docReference = firebaseCollection.doc(data.id);
     const doc = await docReference.get();
     validateDocExists(doc);
@@ -46,7 +53,8 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
     return data;
   };
 
-  const deleteDocFirestore = async (docId: string) => {
+  const deleteDocFirestore = async (docId: string): Promise<T> => {
+    logger.info(`Deleting ${objectType} with id=${docId} in Firestore`);
     const data = await readDocFirestore(docId);
     await firebaseCollection.doc(docId).delete().catch(logAndThrowError);
     return data;
