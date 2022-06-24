@@ -1,10 +1,11 @@
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "graphql";
+import { schemaString as rootSchemaString } from "./schema";
+import { tagsSchemaString } from "./tags";
 
 const schema = buildSchema(`
-type Query {
-  hello: String
-}
+  ${rootSchemaString}
+  ${tagsSchemaString}
 `);
 
 const root = {

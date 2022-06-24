@@ -1,0 +1,21 @@
+type Tag {
+  id: ID!
+  name: String!
+  type: TagType!
+}
+
+input CreateTagInput {
+  name: String!
+  type: TagType
+}
+
+input DeleteTagInput {
+  id: ID!
+}
+
+enum TagType {
+  SPECIAL
+  CREATOR
+  GENRE
+  CUSTOM
+}
