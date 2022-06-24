@@ -1,15 +1,16 @@
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "graphql";
 import { schemaString as rootSchemaString } from "./schema";
-import { tagsSchemaString } from "./tags";
+import { tagsMutations, tagsQueries, tagsSchemaString } from "./tags";
 
 const schema = buildSchema(`
   ${rootSchemaString}
   ${tagsSchemaString}
 `);
 
-const root = {
-  hello: () => "Hello World!",
+const root: GraphqlRootFunctions = {
+  ...tagsQueries,
+  ...tagsMutations,
 };
 
 export const graphqlEndpoint = graphqlHTTP({
