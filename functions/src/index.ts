@@ -1,9 +1,23 @@
+import express = require("express");
+import type { NextFunction, Request, Response } from "express";
 import * as functions from "firebase-functions";
+import cors = require("cors");
 
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
+// Initialize the Express App for the back end
+export const media_metadata_manager = (() => {
+  const app = express();
 
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", { structuredData: true });
-  response.send("Hello from Firebase!");
-});
+  // Automatically allow cross-origin requests
+  // Required to connect the localhost site to the emulator
+  // TODO: Fix this for production in the future
+  app.use(cors({ origin: true }));
+
+  const helloWorld = (req: Request, res: Response, next: NextFunction) => {
+    functions.logger.info("Hello logs!", { structuredData: true });
+    res.send({ data: "Hello from Firebase!" });
+  };
+
+  app.all("/", helloWorld);
+
+  return functions.https.onRequest(app);
+})();
