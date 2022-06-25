@@ -8,11 +8,13 @@ declare interface GraphqlMutationInput<T> {
 
 declare interface GraphqlRootQueries
   extends GraphqlTagQueries,
-    GraphqlMediaObjectQueries {}
+    GraphqlMediaObjectQueries,
+    GraphqlPlaylistQueries {}
 
 declare interface GraphqlRootMutations
   extends GraphqlTagMutations,
-    GraphqlMediaObjectMutations {}
+    GraphqlMediaObjectMutations,
+    GraphqlPlaylistMutations {}
 
 declare interface GraphqlRootFunctions
   extends GraphqlRootQueries,

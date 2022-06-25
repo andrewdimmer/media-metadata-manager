@@ -5,7 +5,11 @@ import {
   mediaObjectsQueries,
   mediaObjectsSchemaString,
 } from "./mediaObjects";
-import { playlistsSchemaString } from "./playlists";
+import {
+  playlistsMutations,
+  playlistsQueries,
+  playlistsSchemaString,
+} from "./playlists";
 import { schemaString as rootSchemaString } from "./schema";
 import { tagsMutations, tagsQueries, tagsSchemaString } from "./tags";
 
@@ -21,6 +25,8 @@ const root: GraphqlRootFunctions = {
   ...tagsMutations,
   ...mediaObjectsQueries,
   ...mediaObjectsMutations,
+  ...playlistsQueries,
+  ...playlistsMutations,
 };
 
 export const graphqlEndpoint = graphqlHTTP({
