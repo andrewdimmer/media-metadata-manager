@@ -1,6 +1,11 @@
 import genericFirebaseDAO from "./genericFirebaseDAO";
 
-const playlistsDAO = genericFirebaseDAO<PlaylistData>("playlist", "playlists");
+const cache: FirestoreCache<PlaylistData> = { data: {}, complete: false };
+const playlistsDAO = genericFirebaseDAO<PlaylistData>(
+  "playlist",
+  "playlists",
+  cache
+);
 
 // Generic DAO Functions
 export const createPlaylistFirestore = playlistsDAO.createDocFirestore;

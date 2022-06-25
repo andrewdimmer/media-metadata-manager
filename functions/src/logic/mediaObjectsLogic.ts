@@ -15,8 +15,7 @@ const generateMediaObjectId = () => {
 };
 
 export const convertMediaObjectDataToMediaObject = (
-  mediaObjectData: MediaObjectData,
-  cachedTabs?: TagData[]
+  mediaObjectData: MediaObjectData
 ): MediaObject => {
   const tagIds = mediaObjectData.creatorTagIds
     .concat(mediaObjectData.genreTagIds)
@@ -25,32 +24,29 @@ export const convertMediaObjectDataToMediaObject = (
 
   return {
     ...mediaObjectData,
-    tags: tags(mediaObjectData.id, tagIds, cachedTabs),
-    tag: tag(mediaObjectData.id, tagIds, cachedTabs),
+    tags: tags(mediaObjectData.id, tagIds),
+    tag: tag(mediaObjectData.id, tagIds),
   };
 };
 
 export const convertMediaObjectDataArrayToMediaObjectArray = (
-  mediaObjectsData: MediaObjectData[],
-  cachedTabs?: TagData[]
+  mediaObjectsData: MediaObjectData[]
 ): MediaObject[] => {
   return mediaObjectsData.map((mediaObjectData) => {
-    return convertMediaObjectDataToMediaObject(mediaObjectData, cachedTabs);
+    return convertMediaObjectDataToMediaObject(mediaObjectData);
   });
 };
 
-const tags =
-  (mediaObjectId: string, tagIds: string[], cachedTabs?: TagData[]) =>
-  async () => {
-    return Promise.all(
-      tagIds.map((tagId) => {
-        return tag(mediaObjectId, tagIds, cachedTabs)({ id: tagId });
-      })
-    );
-  };
+const tags = (mediaObjectId: string, tagIds: string[]) => async () => {
+  return Promise.all(
+    tagIds.map((tagId) => {
+      return tag(mediaObjectId, tagIds)({ id: tagId });
+    })
+  );
+};
 
 const tag =
-  (mediaObjectId: string, tagIds: string[], cachedTabs?: TagData[]) =>
+  (mediaObjectId: string, tagIds: string[]) =>
   async ({ id }: GraphqlQueryId) => {
     if (!tagIds.includes(id)) {
       logAndThrowError(
@@ -58,11 +54,7 @@ const tag =
       );
     }
 
-    const tagData =
-      cachedTabs?.find((tagData) => {
-        return tagData.id === id;
-      }) || (await readTagFirestore(id));
-
+    const tagData = await readTagFirestore(id);
     return convertTagDataToTag(tagData);
   };
 
@@ -72,21 +64,16 @@ export const createMediaObjectFromInput = async (
   const mediaObjectId = generateMediaObjectId();
 
   // Handle Tag Updates or Creation if required
-  const {
-    creatorTagIds,
-    genreTagIds,
-    customTagIds,
-    specialTagIds,
-    cachedTabs,
-  } = await processTabs(input, {
-    id: mediaObjectId,
-    name: "DUMMY",
-    creatorTagIds: [],
-    genreTagIds: [],
-    customTagIds: [],
-    specialTagIds: [],
-    sources: [],
-  });
+  const { creatorTagIds, genreTagIds, customTagIds, specialTagIds } =
+    await processTabs(input, {
+      id: mediaObjectId,
+      name: "DUMMY",
+      creatorTagIds: [],
+      genreTagIds: [],
+      customTagIds: [],
+      specialTagIds: [],
+      sources: [],
+    });
 
   // Create Media Object
   const newMediaObject = await createMediaObjectFirestore({
@@ -100,7 +87,7 @@ export const createMediaObjectFromInput = async (
     sources: input.sources,
   });
 
-  return { mediaObjectData: newMediaObject, cachedTabs };
+  return newMediaObject;
 };
 
 export const updateMediaObjectFromInput = async (
@@ -109,13 +96,8 @@ export const updateMediaObjectFromInput = async (
   const existingMediaObject = await readMediaObjectFirestore(input.id);
 
   // Handle Tag Updates or Creation if required
-  const {
-    creatorTagIds,
-    genreTagIds,
-    customTagIds,
-    specialTagIds,
-    cachedTabs,
-  } = await processTabs(input, existingMediaObject);
+  const { creatorTagIds, genreTagIds, customTagIds, specialTagIds } =
+    await processTabs(input, existingMediaObject);
 
   // Update Media Object
   const newMediaObject = await updateMediaObjectFirestore({
@@ -130,7 +112,7 @@ export const updateMediaObjectFromInput = async (
     sources: input.sources || existingMediaObject.sources,
   });
 
-  return { mediaObjectData: newMediaObject, cachedTabs };
+  return newMediaObject;
 };
 
 export const deleteMediaObjectFromInput = async (
@@ -140,7 +122,7 @@ export const deleteMediaObjectFromInput = async (
   const mediaObjectData = await deleteMediaObjectFirestore(input.id);
 
   // Propagate Deletion through the Tags
-  const { cachedTabs } = await processTabs(
+  await processTabs(
     {
       id: mediaObjectData.id,
       creatorTagIdsOrNames: [],
@@ -151,32 +133,32 @@ export const deleteMediaObjectFromInput = async (
     mediaObjectData
   );
 
-  return { mediaObjectData, cachedTabs };
+  return mediaObjectData;
 };
 
 const processTabs = async (
   input: CreateMediaObjectInput | UpdateMediaObjectInput,
   existingMediaObject: MediaObjectData
 ) => {
-  const creatorTagIdsAndCache = await createNewOrUpdateTags(
+  const creatorTagIds = await createNewOrUpdateTags(
     existingMediaObject.id,
     input.creatorTagIdsOrNames,
     existingMediaObject.creatorTagIds,
     "CREATOR"
   );
-  const genreTagIdsAndCache = await createNewOrUpdateTags(
+  const genreTagIds = await createNewOrUpdateTags(
     existingMediaObject.id,
     input.genreTagIdsOrNames,
     existingMediaObject.genreTagIds,
     "GENRE"
   );
-  const customTagIdsAndCache = await createNewOrUpdateTags(
+  const customTagIds = await createNewOrUpdateTags(
     existingMediaObject.id,
     input.customTagIdsOrNames,
     existingMediaObject.customTagIds,
     "CUSTOM"
   );
-  const specialTagIdsAndCache = await createNewOrUpdateTags(
+  const specialTagIds = await createNewOrUpdateTags(
     existingMediaObject.id,
     input.specialTagIdsOrNames,
     existingMediaObject.specialTagIds,
@@ -184,14 +166,10 @@ const processTabs = async (
   );
 
   return {
-    creatorTagIds: creatorTagIdsAndCache.tagIds,
-    genreTagIds: genreTagIdsAndCache.tagIds,
-    customTagIds: customTagIdsAndCache.tagIds,
-    specialTagIds: specialTagIdsAndCache.tagIds,
-    cachedTabs: creatorTagIdsAndCache.tagsData
-      .concat(genreTagIdsAndCache.tagsData)
-      .concat(customTagIdsAndCache.tagsData)
-      .concat(specialTagIdsAndCache.tagsData),
+    creatorTagIds,
+    genreTagIds,
+    customTagIds,
+    specialTagIds,
   };
 };
 

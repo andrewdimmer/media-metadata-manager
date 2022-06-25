@@ -1,6 +1,7 @@
 import genericFirebaseDAO from "./genericFirebaseDAO";
 
-const tagsDAO = genericFirebaseDAO<TagData>("tag", "tags");
+const cache: FirestoreCache<TagData> = { data: {}, complete: false };
+const tagsDAO = genericFirebaseDAO<TagData>("tag", "tags", cache);
 
 // Generic DAO Functions
 export const createTagFirestore = tagsDAO.createDocFirestore;

@@ -17,38 +17,30 @@ const generateTagId = (tagName: string, tagType: TagType) => {
   return `TAG_${tagType}_${sanitizedName}`;
 };
 
-export const convertTagDataToTag = (
-  tagData: TagData,
-  cache?: { mediaObjectsData?: MediaObjectData[] }
-): Tag => {
+export const convertTagDataToTag = (tagData: TagData): Tag => {
   return {
     ...tagData,
-    mediaObjects: mediaObjects(tagData, cache),
-    mediaObject: mediaObject(tagData, cache),
+    mediaObjects: mediaObjects(tagData),
+    mediaObject: mediaObject(tagData),
   };
 };
 
-export const convertTagDataArrayToTagArray = (
-  tagsData: TagData[],
-  cache?: { mediaObjectsData?: MediaObjectData[] }
-): Tag[] => {
+export const convertTagDataArrayToTagArray = (tagsData: TagData[]): Tag[] => {
   return tagsData.map((tagData) => {
-    return convertTagDataToTag(tagData, cache);
+    return convertTagDataToTag(tagData);
   });
 };
 
-const mediaObjects =
-  (tagData: TagData, cache?: { mediaObjectsData?: MediaObjectData[] }) =>
-  async () => {
-    return Promise.all(
-      tagData.mediaObjectIds.map((mediaObjectId) => {
-        return mediaObject(tagData, cache)({ id: mediaObjectId });
-      })
-    );
-  };
+const mediaObjects = (tagData: TagData) => async () => {
+  return Promise.all(
+    tagData.mediaObjectIds.map((mediaObjectId) => {
+      return mediaObject(tagData)({ id: mediaObjectId });
+    })
+  );
+};
 
 const mediaObject =
-  (tagData: TagData, cache?: { mediaObjectsData?: MediaObjectData[] }) =>
+  (tagData: TagData) =>
   async ({ id }: GraphqlQueryId) => {
     if (!tagData.mediaObjectIds.includes(id)) {
       logAndThrowError(
@@ -56,11 +48,7 @@ const mediaObject =
       );
     }
 
-    const mediaObjectData =
-      cache?.mediaObjectsData?.find((mediaObjectData) => {
-        return mediaObjectData.id === id;
-      }) || (await readMediaObjectFirestore(id));
-
+    const mediaObjectData = await readMediaObjectFirestore(id);
     return convertMediaObjectDataToMediaObject(mediaObjectData);
   };
 
@@ -80,13 +68,13 @@ export const deleteTagFromInput = async (input: DeleteTagInput) => {
   const tagData = await deleteTagFirestore(input.id);
 
   // Propagate Deletion through Media Objects
-  const cachedMediaObjects = await Promise.all(
+  await Promise.all(
     tagData.mediaObjectIds.map((mediaObjectId) => {
       return removeTagUponTagDeletion(mediaObjectId, tagData);
     })
   );
 
-  return { tagData, cachedMediaObjects };
+  return tagData;
 };
 
 const addMediaObjectToTag = async (mediaObjectId: string, tagId: string) => {
@@ -117,14 +105,14 @@ export const createNewOrUpdateTags = async (
 ) => {
   // Short circuit if no new tags are provided
   if (newTagIdsOrNames === undefined) {
-    return { tagIds: existingTagIds, tagsData: [] };
+    return existingTagIds;
   }
 
   // Perform tag type validation
   newTagIdsOrNames.map((tagIdOrName) => {
     if (
-      tagIdOrName.includes("TAG_") &&
-      !tagIdOrName.includes(`TAG_${tagType}`)
+      tagIdOrName.indexOf("TAG_") === 0 &&
+      tagIdOrName.indexOf(`TAG_${tagType}_`) !== 0
     ) {
       logAndThrowError(
         `The tag with id=${tagIdOrName} is not of type=${tagType}`
@@ -135,9 +123,9 @@ export const createNewOrUpdateTags = async (
 
   // Perform tag appends or creation
   const tagIds: string[] = [];
-  const tagsDataAppendCreate = newTagIdsOrNames.reduce(
-    (output, tagIdOrName) => {
-      if (tagIdOrName.includes("TAG_")) {
+  await Promise.all(
+    newTagIdsOrNames.reduce((output, tagIdOrName) => {
+      if (tagIdOrName.indexOf("TAG_") === 0) {
         // Tag Id; need to (maybe) update (assume already exists)
         tagIds.push(tagIdOrName);
         if (!existingTagIds.includes(tagIdOrName)) {
@@ -154,22 +142,18 @@ export const createNewOrUpdateTags = async (
         output.push(tagData);
       }
       return output;
-    },
-    [] as Promise<TagData>[]
+    }, [] as Promise<TagData>[])
   );
 
   // Remove media object ids from tags no longer used
-  const tagsDataRemove = existingTagIds.reduce((output, tagId) => {
-    if (!newTagIdsOrNames.includes(tagId)) {
-      output.push(removeMediaObjectFromTag(mediaObjectId, tagId));
-    }
-    return output;
-  }, [] as Promise<TagData>[]);
-
-  // Combine cached tags
-  const tagsData = await Promise.all(
-    tagsDataAppendCreate.concat(tagsDataRemove)
+  await Promise.all(
+    existingTagIds.reduce((output, tagId) => {
+      if (!newTagIdsOrNames.includes(tagId)) {
+        output.push(removeMediaObjectFromTag(mediaObjectId, tagId));
+      }
+      return output;
+    }, [] as Promise<TagData>[])
   );
 
-  return { tagIds, tagsData };
+  return tagIds;
 };
