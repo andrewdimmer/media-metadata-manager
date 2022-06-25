@@ -5,8 +5,14 @@ export const schemaString = `
   type MediaObject {
     id: ID!
     name: String!
+    creatorTagIds: [String!]!
+    genreTagIds: [String!]!
+    customTagIds: [String!]!
+    specialTagIds: [String!]!
     externalResources: [MediaObjectExternalResouce!]
     sources: [MediaObjectSource!]!
+    tags: [Tag!]!
+    tag(id: ID!): Tag!
   }
 
   type MediaObjectExternalResouce {
@@ -23,6 +29,10 @@ export const schemaString = `
 
   input CreateMediaObjectInput {
     name: String!
+    creatorTagIdsOrNames: [String!]
+    genreTagIdsOrNames: [String!]
+    customTagIdsOrNames: [String!]
+    specialTagIdsOrNames: [String!]
     externalResources: [MediaObjectExternalResouceInput!]
     sources: [MediaObjectSourceInput!]!
   }
@@ -30,6 +40,10 @@ export const schemaString = `
   input UpdateMediaObjectInput {
     id: ID!
     name: String
+    creatorTagIdsOrNames: [String!]
+    genreTagIdsOrNames: [String!]
+    customTagIdsOrNames: [String!]
+    specialTagIdsOrNames: [String!]
     externalResources: [MediaObjectExternalResouceInput!]
     sources: [MediaObjectSourceInput!]
   }

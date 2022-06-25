@@ -3,14 +3,22 @@ declare interface TagData extends DatabaseNode {
   id: string;
   name: string;
   type: TagType;
+  mediaObjectIds: string[];
 }
 
-declare interface Tag extends TagData {}
+declare interface Tag extends TagData {
+  mediaObjects: () => Promise<MediaObject[]>;
+  mediaObject: (id: GraphqlQueryId) => Promise<MediaObject>;
+}
 
 // GraphQL Inputs
 declare interface CreateTagInput {
   name: string;
   type?: TagType;
+}
+
+declare interface CreateTagInputInternal extends CreateTagInput {
+  mediaObjectIds?: string[];
 }
 
 declare interface DeleteTagInput {

@@ -2,23 +2,26 @@
 declare interface MediaObjectData extends DatabaseNode {
   id: string;
   name: string;
-  // creatorTagIds: string[];
-  // genreTagIds: string[];
-  // customTagIds: string[];
-  // specialTagIds: string[];
+  creatorTagIds: string[];
+  genreTagIds: string[];
+  customTagIds: string[];
+  specialTagIds: string[];
   externalResources?: MediaObjectExternalResource[];
   sources: MediaObjectSource[];
 }
 
-declare interface MediaObject extends MediaObjectData {}
+declare interface MediaObject extends MediaObjectData {
+  tags: () => Promise<Tag[]>;
+  tag: (id: GraphqlQueryId) => Promise<Tag>;
+}
 
 // GraphQL Inputs
 declare interface CreateMediaObjectInput {
   name: string;
-  // creatorTagIdsOrNames: string[];
-  // genreTagIdsOrNames: string[];
-  // customTagIdsOrNames: string[];
-  // specialTagIdsOrNames: string[];
+  creatorTagIdsOrNames?: string[];
+  genreTagIdsOrNames?: string[];
+  customTagIdsOrNames?: string[];
+  specialTagIdsOrNames?: string[];
   externalResources?: MediaObjectExternalResource[];
   sources: MediaObjectSource[];
 }
@@ -26,10 +29,10 @@ declare interface CreateMediaObjectInput {
 declare interface UpdateMediaObjectInput {
   id: string;
   name?: string;
-  // creatorTagIdsOrNames?: string[];
-  // genreTagIdsOrNames?: string[];
-  // customTagIdsOrNames?: string[];
-  // specialTagIdsOrNames?: string[];
+  creatorTagIdsOrNames?: string[];
+  genreTagIdsOrNames?: string[];
+  customTagIdsOrNames?: string[];
+  specialTagIdsOrNames?: string[];
   externalResources?: MediaObjectExternalResource[];
   sources?: MediaObjectSource[];
 }
