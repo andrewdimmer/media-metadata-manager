@@ -19,7 +19,11 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
     const docReference = firebaseCollection.doc(data.id);
     const doc = await docReference.get();
     validateDocDoesNotExist(doc);
-    await docReference.set(data).catch(logAndThrowError);
+    await docReference
+      // Clean undefined fields
+      // https://stackoverflow.com/questions/42310950/handling-undefined-values-with-firebase
+      .set(JSON.parse(JSON.stringify(data)))
+      .catch(logAndThrowError);
     return data;
   };
 
@@ -49,7 +53,11 @@ const genericFirebaseDAO = <T extends DatabaseNode>(
     const docReference = firebaseCollection.doc(data.id);
     const doc = await docReference.get();
     validateDocExists(doc);
-    await docReference.update(data).catch(logAndThrowError);
+    await docReference
+      // Clean undefined fields
+      // https://stackoverflow.com/questions/42310950/handling-undefined-values-with-firebase
+      .update(JSON.parse(JSON.stringify(data)))
+      .catch(logAndThrowError);
     return data;
   };
 

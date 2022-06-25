@@ -1,3 +1,4 @@
+// Interfaces
 declare interface TagData extends DatabaseNode {
   id: string;
   name: string;
@@ -6,17 +7,20 @@ declare interface TagData extends DatabaseNode {
 
 declare interface Tag extends TagData {}
 
-declare type CreateTagInput = {
+// GraphQL Inputs
+declare interface CreateTagInput {
   name: string;
   type?: TagType;
-};
+}
 
-declare type DeleteTagInput = {
+declare interface DeleteTagInput {
   id: string;
-};
+}
 
+// Enums and Subtypes
 declare type TagType = "SPECIAL" | "CREATOR" | "GENRE" | "CUSTOM";
 
+// GraphQL Functions
 declare interface GraphqlTagQueries {
   tags: () => Promise<Tag[]>;
   tag: (id: GraphqlQueryId) => Promise<Tag>;

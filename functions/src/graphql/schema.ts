@@ -10,10 +10,15 @@ export const schemaString = `
   type Query {
     tags: [Tag!]!
     tag(id: ID!): Tag!
+    mediaObjects: [MediaObject!]!
+    mediaObject(id: ID!): MediaObject!
   }
 
   type Mutation {
     createTag(input: CreateTagInput): Tag!
     deleteTag(input: DeleteTagInput): Tag!
+    createMediaObject(input: CreateMediaObjectInput): MediaObject!
+    updateMediaObject(input: UpdateMediaObjectInput): MediaObject!
+    deleteMediaObject(input: DeleteMediaObjectInput): MediaObject!
   }
 `;
