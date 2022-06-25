@@ -1,5 +1,5 @@
 import { readTagFirestore } from "../firebase/tagsDAO";
-import { intersectionLists, unionLists } from "./arrayUtils";
+import { intersectionArrays, unionArrays } from "./arrayUtils";
 import { logAndThrowError } from "./errorHandlingUtils";
 import { validateStringOrArrayIsNotEmpty } from "./genericValidationUtils";
 
@@ -41,7 +41,7 @@ export const validateFilterStringAndExtractTagIds = async (
       })
     );
     return tagIds.reduce((oldTagIds, newTagIds) => {
-      return unionLists(oldTagIds, newTagIds);
+      return unionArrays(oldTagIds, newTagIds);
     }, [] as string[]);
   }
 
@@ -74,8 +74,8 @@ export const getMediaObjectIdsMatchingFilter = async (
     return mediaObjectIds.reduce(
       (mediaOnjectMatchingFilter, newMediaObjectIds) => {
         return filterStart === "AND("
-          ? unionLists(mediaOnjectMatchingFilter, newMediaObjectIds)
-          : intersectionLists(mediaOnjectMatchingFilter, newMediaObjectIds);
+          ? unionArrays(mediaOnjectMatchingFilter, newMediaObjectIds)
+          : intersectionArrays(mediaOnjectMatchingFilter, newMediaObjectIds);
       },
       [] as string[]
     );

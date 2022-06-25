@@ -6,7 +6,7 @@ import {
   updateMediaObjectFirestore,
 } from "../firebase/mediaObjectsDAO";
 import { readTagFirestore } from "../firebase/tagsDAO";
-import { removeItemFromList } from "../utils/arrayUtils";
+import { removeItemFromArray } from "../utils/arrayUtils";
 import { logAndThrowError } from "../utils/errorHandlingUtils";
 import { validateStringOrArrayIsNotEmpty } from "../utils/genericValidationUtils";
 import { convertTagDataToTag, createNewOrUpdateTags } from "./tagsLogic";
@@ -198,25 +198,25 @@ export const removeTagUponTagDeletion = async (
   // Remove the tag from the correct list
   switch (tagData.type) {
     case "CREATOR":
-      mediaObjectData.creatorTagIds = removeItemFromList(
+      mediaObjectData.creatorTagIds = removeItemFromArray(
         mediaObjectData.creatorTagIds,
         tagData.id
       );
       break;
     case "GENRE":
-      mediaObjectData.genreTagIds = removeItemFromList(
+      mediaObjectData.genreTagIds = removeItemFromArray(
         mediaObjectData.genreTagIds,
         tagData.id
       );
       break;
     case "CUSTOM":
-      mediaObjectData.customTagIds = removeItemFromList(
+      mediaObjectData.customTagIds = removeItemFromArray(
         mediaObjectData.customTagIds,
         tagData.id
       );
       break;
     case "SPECIAL":
-      mediaObjectData.specialTagIds = removeItemFromList(
+      mediaObjectData.specialTagIds = removeItemFromArray(
         mediaObjectData.specialTagIds,
         tagData.id
       );

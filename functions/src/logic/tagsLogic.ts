@@ -5,7 +5,7 @@ import {
   readTagFirestore,
   updateTagFirestore,
 } from "../firebase/tagsDAO";
-import { removeItemFromList } from "../utils/arrayUtils";
+import { removeItemFromArray } from "../utils/arrayUtils";
 import { logAndThrowError } from "../utils/errorHandlingUtils";
 import { validateStringOrArrayIsNotEmpty } from "../utils/genericValidationUtils";
 import {
@@ -97,7 +97,7 @@ const removeMediaObjectFromTag = async (
   tagId: string
 ) => {
   const tagData = await readTagFirestore(tagId);
-  tagData.mediaObjectIds = removeItemFromList(
+  tagData.mediaObjectIds = removeItemFromArray(
     tagData.mediaObjectIds,
     mediaObjectId
   );
