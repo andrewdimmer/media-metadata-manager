@@ -12,3 +12,7 @@ export const resourceAlreadyExistsError = (objectType: string, id: string) => {
 export const resourceDoesNotExistsError = (objectType: string, id: string) => {
   logAndThrowError(`No ${objectType} exists with id=${id}`);
 };
+
+export const requiredStringIsEmptyError = (fieldName: string) => {
+  logAndThrowError(`The ${fieldName} cannot be empty.`);
+};

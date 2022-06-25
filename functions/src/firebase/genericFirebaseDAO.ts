@@ -4,7 +4,7 @@ import { logAndThrowError } from "../utils/errorHandlingUtils";
 import {
   validateDocDoesNotExistFactory,
   validateDocExistsFactory,
-} from "./validationUtils";
+} from "./firestoreValidationUtils";
 
 const genericFirebaseDAO = <T extends DatabaseNode>(
   objectType: string,
