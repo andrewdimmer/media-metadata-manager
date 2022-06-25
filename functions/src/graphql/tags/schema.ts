@@ -6,6 +6,9 @@ export const schemaString = `
     id: ID!
     name: String!
     type: TagType!
+    mediaObjectIds: [String!]!
+    mediaObjects: [MediaObject!]!
+    mediaObject(id: ID!): MediaObject!
   }
 
   input CreateTagInput {
