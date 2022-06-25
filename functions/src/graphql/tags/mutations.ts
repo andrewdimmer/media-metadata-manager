@@ -17,8 +17,8 @@ const deleteTag = async ({
   input,
 }: GraphqlMutationInput<DeleteTagInput>): Promise<Tag> => {
   logger.info(`Running Mutation: deleteTag(input: ${JSON.stringify(input)})`);
-  const tagData = await deleteTagFromInput(input);
-  return convertTagDataToTag(tagData);
+  const { tagData, cachedMediaObjects } = await deleteTagFromInput(input);
+  return convertTagDataToTag(tagData, { mediaObjectsData: cachedMediaObjects });
 };
 
 export const mutations = {
