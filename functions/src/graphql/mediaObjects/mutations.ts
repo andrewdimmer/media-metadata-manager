@@ -12,10 +12,8 @@ const createMediaObject = async ({
   logger.info(
     `Running Mutation: createMediaObject(input: ${JSON.stringify(input)})`
   );
-  const { mediaObjectData, cachedTabs } = await createMediaObjectFromInput(
-    input
-  );
-  return convertMediaObjectDataToMediaObject(mediaObjectData, cachedTabs);
+  const mediaObjectData = await createMediaObjectFromInput(input);
+  return convertMediaObjectDataToMediaObject(mediaObjectData);
 };
 
 const updateMediaObject = async ({
@@ -24,10 +22,8 @@ const updateMediaObject = async ({
   logger.info(
     `Running Mutation: updateMediaObject(input: ${JSON.stringify(input)})`
   );
-  const { mediaObjectData, cachedTabs } = await updateMediaObjectFromInput(
-    input
-  );
-  return convertMediaObjectDataToMediaObject(mediaObjectData, cachedTabs);
+  const mediaObjectData = await updateMediaObjectFromInput(input);
+  return convertMediaObjectDataToMediaObject(mediaObjectData);
 };
 
 const deleteMediaObject = async ({
@@ -36,10 +32,8 @@ const deleteMediaObject = async ({
   logger.info(
     `Running Mutation: deleteMediaObject(input: ${JSON.stringify(input)})`
   );
-  const { mediaObjectData, cachedTabs } = await deleteMediaObjectFromInput(
-    input
-  );
-  return convertMediaObjectDataToMediaObject(mediaObjectData, cachedTabs);
+  const mediaObjectData = await deleteMediaObjectFromInput(input);
+  return convertMediaObjectDataToMediaObject(mediaObjectData);
 };
 
 export const mutations = {
