@@ -1,12 +1,11 @@
 import { readTagFirestore } from "../firebase/tagsDAO";
 import { intersectionLists, unionLists } from "./arrayUtils";
 import { logAndThrowError } from "./errorHandlingUtils";
+import { validateStringOrArrayIsNotEmpty } from "./genericValidationUtils";
 
 export const cleanFilterString = (filter: string) => {
   const cleanFilter = filter.replace(/\s/g, "");
-  if (!cleanFilter) {
-    logAndThrowError("The filter cannot be empty.");
-  }
+  validateStringOrArrayIsNotEmpty(cleanFilter, "The filter string");
   return cleanFilter;
 };
 

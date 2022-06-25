@@ -5,6 +5,7 @@ import {
   readPlaylistFirestore,
   updatePlaylistFirestore,
 } from "../firebase/playlistsDAO";
+import { validateStringOrArrayIsNotEmpty } from "../utils/genericValidationUtils";
 
 const generatePlaylistId = () => {
   return `PLAYLIST_${uuid()}`;
@@ -27,6 +28,10 @@ export const convertPlaylistDataArrayToPlaylistArray = (
 };
 
 export const createPlaylistFromInput = async (input: CreatePlaylistInput) => {
+  // Handle Data Validation
+  validateStringOrArrayIsNotEmpty(input.name, "playlist name");
+  validateStringOrArrayIsNotEmpty(input.description, "playlist description");
+
   const playlistId = generatePlaylistId();
   return createPlaylistFirestore({
     id: playlistId,
@@ -46,6 +51,9 @@ export const updatePlaylistFromInput = async (input: UpdatePlaylistInput) => {
 };
 
 export const deletePlaylistFromInput = async (input: DeletePlaylistInput) => {
+  // Handle Data Validation
+  validateStringOrArrayIsNotEmpty(input.id, "playlist id");
+
   const playlistData = await deletePlaylistFirestore(input.id);
   return playlistData;
 };

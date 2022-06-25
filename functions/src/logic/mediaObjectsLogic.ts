@@ -8,6 +8,7 @@ import {
 import { readTagFirestore } from "../firebase/tagsDAO";
 import { removeItemFromList } from "../utils/arrayUtils";
 import { logAndThrowError } from "../utils/errorHandlingUtils";
+import { validateStringOrArrayIsNotEmpty } from "../utils/genericValidationUtils";
 import { convertTagDataToTag, createNewOrUpdateTags } from "./tagsLogic";
 
 const generateMediaObjectId = () => {
@@ -48,6 +49,7 @@ const tags = (mediaObjectId: string, tagIds: string[]) => async () => {
 const tag =
   (mediaObjectId: string, tagIds: string[]) =>
   async ({ id }: GraphqlQueryId) => {
+    validateStringOrArrayIsNotEmpty(id, "tag id");
     if (!tagIds.includes(id)) {
       logAndThrowError(
         `The media object with id=${mediaObjectId} is not tagged with the tag with id=${id}`
@@ -62,6 +64,11 @@ export const createMediaObjectFromInput = async (
   input: CreateMediaObjectInput
 ) => {
   const mediaObjectId = generateMediaObjectId();
+
+  // Handle Data Validation
+  validateStringOrArrayIsNotEmpty(input.name, "media object name");
+  validateStringOrArrayIsNotEmpty(input.sources, "media object sources");
+  // TODO: Add Data Validation Here for nested objects
 
   // Handle Tag Updates or Creation if required
   const { creatorTagIds, genreTagIds, customTagIds, specialTagIds } =
@@ -95,6 +102,9 @@ export const updateMediaObjectFromInput = async (
 ) => {
   const existingMediaObject = await readMediaObjectFirestore(input.id);
 
+  // Handle Data Validation
+  // TODO: Add Data Validation Here for nested objects
+
   // Handle Tag Updates or Creation if required
   const { creatorTagIds, genreTagIds, customTagIds, specialTagIds } =
     await processTabs(input, existingMediaObject);
@@ -108,7 +118,9 @@ export const updateMediaObjectFromInput = async (
     customTagIds,
     specialTagIds,
     externalResources:
-      input.externalResources || existingMediaObject.externalResources,
+      input.externalResources !== undefined
+        ? input.externalResources
+        : existingMediaObject.externalResources,
     sources: input.sources || existingMediaObject.sources,
   });
 
@@ -118,6 +130,9 @@ export const updateMediaObjectFromInput = async (
 export const deleteMediaObjectFromInput = async (
   input: DeleteMediaObjectInput
 ) => {
+  // Handle Data Validation
+  validateStringOrArrayIsNotEmpty(input.id, "media object id");
+
   // Delete the Media Object
   const mediaObjectData = await deleteMediaObjectFirestore(input.id);
 

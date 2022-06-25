@@ -7,6 +7,7 @@ import {
 } from "../firebase/tagsDAO";
 import { removeItemFromList } from "../utils/arrayUtils";
 import { logAndThrowError } from "../utils/errorHandlingUtils";
+import { validateStringOrArrayIsNotEmpty } from "../utils/genericValidationUtils";
 import {
   convertMediaObjectDataToMediaObject,
   removeTagUponTagDeletion,
@@ -42,6 +43,7 @@ const mediaObjects = (tagData: TagData) => async () => {
 const mediaObject =
   (tagData: TagData) =>
   async ({ id }: GraphqlQueryId) => {
+    validateStringOrArrayIsNotEmpty(id, "playlist id");
     if (!tagData.mediaObjectIds.includes(id)) {
       logAndThrowError(
         `The tag with id=${tagData.id} is not on the media object with id=${id}`
@@ -56,6 +58,10 @@ export const createTagFromInput = async (input: CreateTagInputInternal) => {
   const tagName = input.name.trim();
   const tagType = input.type || "CUSTOM";
   const mediaObjectIds = input.mediaObjectIds || [];
+
+  // Handle Data Validation
+  validateStringOrArrayIsNotEmpty(tagName, "tag name");
+
   return createTagFirestore({
     id: generateTagId(tagName, tagType),
     name: tagName,
@@ -66,6 +72,7 @@ export const createTagFromInput = async (input: CreateTagInputInternal) => {
 
 export const deleteTagFromInput = async (input: DeleteTagInput) => {
   const tagData = await deleteTagFirestore(input.id);
+  validateStringOrArrayIsNotEmpty(input.id, "tag id");
 
   // Propagate Deletion through Media Objects
   await Promise.all(
