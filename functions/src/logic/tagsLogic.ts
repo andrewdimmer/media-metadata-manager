@@ -1,7 +1,7 @@
 import { createTagFirestore, deleteTagFirestore } from "../firebase/tagsDAO";
 
 const generateTagId = (tagName: string, tagType: TagType) => {
-  const sanitizedName = tagName.toLowerCase().replace(/[^a-z0-9_]/g, "_");
+  const sanitizedName = tagName.toLowerCase().replace(/[^a-z0-9]/g, "-");
   return `TAG_${tagType}_${sanitizedName}`;
 };
 
