@@ -1,8 +1,10 @@
 import genericFirebaseDAO from "./genericFirebaseDAO";
 
+const cache: FirestoreCache<MediaObjectData> = { data: {}, complete: false };
 const mediaObjectsDAO = genericFirebaseDAO<MediaObjectData>(
   "media object",
-  "media"
+  "media",
+  cache
 );
 
 // Generic DAO Functions
