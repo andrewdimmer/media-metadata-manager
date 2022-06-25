@@ -4,6 +4,12 @@ type Playlist {
   name: String!
   description: String!
   filter: String!
+  tagIds: [ID!]!
+  mediaObjectIds: [ID!]!
+  tags: [Tag!]!
+  tag(id: ID!): Tag!
+  mediaObjects: [MediaObject!]!
+  mediaObject(id: ID!): MediaObject!
 }
 
 input CreatePlaylistInput {
@@ -16,6 +22,7 @@ input UpdatePlaylistInput {
   id: ID!
   name: String
   description: String
+  filter: String
 }
 
 input DeletePlaylistInput {

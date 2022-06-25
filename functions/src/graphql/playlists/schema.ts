@@ -8,6 +8,12 @@ export const schemaString = `
     name: String!
     description: String!
     filter: String!
+    tagIds: [ID!]!
+    mediaObjectIds: [ID!]!
+    tags: [Tag!]!
+    tag(id: ID!): Tag!
+    mediaObjects: [MediaObject!]!
+    mediaObject(id: ID!): MediaObject!
   }
 
   input CreatePlaylistInput {
@@ -20,6 +26,7 @@ export const schemaString = `
     id: ID!
     name: String
     description: String
+    filter: String
   }
 
   input DeletePlaylistInput {
