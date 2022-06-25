@@ -12,6 +12,8 @@ export const schemaString = `
     tag(id: ID!): Tag!
     mediaObjects: [MediaObject!]!
     mediaObject(id: ID!): MediaObject!
+    playlists: [Playlist!]!
+    playlist(id: ID!): Playlist!
   }
 
   type Mutation {
@@ -20,5 +22,8 @@ export const schemaString = `
     createMediaObject(input: CreateMediaObjectInput): MediaObject!
     updateMediaObject(input: UpdateMediaObjectInput): MediaObject!
     deleteMediaObject(input: DeleteMediaObjectInput): MediaObject!
+    createPlaylist(input: CreatePlaylistInput): Playlist!
+    updatePlaylist(input: UpdatePlaylistInput): Playlist!
+    deletePlaylist(input: DeletePlaylistInput): Playlist!
   }
 `;
