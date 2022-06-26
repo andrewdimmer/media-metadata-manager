@@ -1,6 +1,7 @@
 import { Container } from "@mui/material";
 import { gql } from "graphql-request";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import MenuAppBar from "./components/layout/MenuAppBar";
 import { graphqlClient } from "./config/graphqlClient";
 import Error404Page from "./pages/Error404Page";
 import HomePage from "./pages/Home";
@@ -20,6 +21,7 @@ function App() {
   return (
     <CustomThemeProvider>
       <Router>
+        <MenuAppBar title="Media Metadata Manager" />
         <Container>
           <Routes>
             <Route path="/" element={<HomePage />} />
