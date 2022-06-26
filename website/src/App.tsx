@@ -1,9 +1,9 @@
-import React from "react";
-import logo from "./logo.svg";
-import "./App.css";
-
+import { Container } from "@mui/material";
 import { gql } from "graphql-request";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { graphqlClient } from "./config/graphqlClient";
+import Error404Page from "./pages/Error404Page";
+import HomePage from "./pages/Home";
 import CustomThemeProvider from "./styles/CustomThemeProvider";
 graphqlClient
   .request(
@@ -19,17 +19,14 @@ graphqlClient
 function App() {
   return (
     <CustomThemeProvider>
-      <div>
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-          </p>
-          <a className="App-link" href="https://reactjs.org" target="_blank">
-            Learn React
-          </a>
-        </header>
-      </div>
+      <Router>
+        <Container>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="*" element={<Error404Page />} />
+          </Routes>
+        </Container>
+      </Router>
     </CustomThemeProvider>
   );
 }
