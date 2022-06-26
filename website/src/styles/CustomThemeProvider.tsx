@@ -38,7 +38,7 @@ const CustomThemeProvider: React.FunctionComponent<
     return userPreferenceThemeMode ? "dark" : "light";
   }, []);
 
-  // Creates a state to keep track of the currnet theme mode
+  // Creates a state to keep track of the current theme mode
   const [themeMode, setThemeMode] =
     React.useState<PaletteMode>(loadInitialThemeMode);
 
