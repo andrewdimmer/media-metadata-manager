@@ -1,10 +1,5 @@
 export const removeItemFromArray = <T>(array: T[], itemToRemove: T) => {
-  return array.reduce((outputArray, arrayItem) => {
-    if (arrayItem !== itemToRemove) {
-      outputArray.push(arrayItem);
-    }
-    return outputArray;
-  }, [] as T[]);
+  return subtractArrays(array, [itemToRemove]);
 };
 
 export const unionArrays = <T>(array1: T[], array2: T[]) => {
@@ -29,4 +24,27 @@ export const intersectionArrays = <T>(array1: T[], array2: T[]) => {
     }
     return outputArray;
   }, [] as T[]);
+};
+
+export const unionArrayOfArrays = <T>(arrays: T[][]) => {
+  return arrays.reduce((outputUnion, array) => {
+    return unionArrays(outputUnion, array);
+  }, [] as T[]);
+};
+
+export const subtractArrays = <T>(minuendArray: T[], subtrahendArray: T[]) => {
+  return minuendArray.reduce((outputArray, checkItem) => {
+    if (!subtrahendArray.includes(checkItem)) {
+      outputArray.push(checkItem);
+    }
+    return outputArray;
+  }, [] as T[]);
+};
+
+export const diffArrays = <T>(oldArray: T[], newArray: T[]) => {
+  const unchangedItems = intersectionArrays(oldArray, newArray);
+  const addedItems = subtractArrays(newArray, unchangedItems);
+  const deletedItems = subtractArrays(oldArray, unchangedItems);
+
+  return { addedItems, deletedItems };
 };

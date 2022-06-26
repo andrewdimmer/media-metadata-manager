@@ -1,5 +1,9 @@
-import { readTagFirestore } from "../firebase/tagsDAO";
-import { intersectionArrays, unionArrays } from "./arrayUtils";
+import { tagsQueries } from "../graphql/tags";
+import {
+  intersectionArrays,
+  unionArrayOfArrays,
+  unionArrays,
+} from "./arrayUtils";
 import { logAndThrowError } from "./errorHandlingUtils";
 import { validateStringOrArrayIsNotEmpty } from "./genericValidationUtils";
 
@@ -19,7 +23,7 @@ export const validateFilterStringAndExtractTagIds = async (
     }
 
     // Check tag exists and add to cache for future operations
-    await readTagFirestore(filter);
+    await tagsQueries.tag({ id: filter });
     return [filter];
   }
 
@@ -35,14 +39,12 @@ export const validateFilterStringAndExtractTagIds = async (
       filterStart.length,
       filter.length - 1
     );
-    const tagIds = await Promise.all(
+    const tagIdsRaw = await Promise.all(
       filterSubstring.split(",").map((filterToken) => {
         return validateFilterStringAndExtractTagIds(filterToken);
       })
     );
-    return tagIds.reduce((oldTagIds, newTagIds) => {
-      return unionArrays(oldTagIds, newTagIds);
-    }, [] as string[]);
+    return unionArrayOfArrays(tagIdsRaw);
   }
 
   logAndThrowError(
@@ -56,7 +58,7 @@ export const getMediaObjectIdsMatchingFilter = async (
 ): Promise<string[]> => {
   if (filter.indexOf("TAG_") === 0) {
     // Single Tag Filter
-    return (await readTagFirestore(filter)).mediaObjectIds;
+    return (await tagsQueries.tag({ id: filter })).mediaObjectIds;
   } else {
     // Compound Tag Filter
     // Remove the "AND" or "OR" from the filter
@@ -74,10 +76,12 @@ export const getMediaObjectIdsMatchingFilter = async (
     return mediaObjectIds.reduce(
       (mediaOnjectMatchingFilter, newMediaObjectIds) => {
         return filterStart === "AND("
-          ? unionArrays(mediaOnjectMatchingFilter, newMediaObjectIds)
-          : intersectionArrays(mediaOnjectMatchingFilter, newMediaObjectIds);
+          ? intersectionArrays(mediaOnjectMatchingFilter, newMediaObjectIds)
+          : unionArrays(mediaOnjectMatchingFilter, newMediaObjectIds);
       },
-      [] as string[]
+      filterStart === "AND("
+        ? unionArrayOfArrays(mediaObjectIds)
+        : ([] as string[])
     );
   }
 };

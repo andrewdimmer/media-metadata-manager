@@ -4,10 +4,17 @@ declare interface PlaylistData extends DatabaseNode {
   name: string;
   description: string;
   filter: string;
+  tagIds: string[];
+  mediaObjectIds: string[];
   // externalOutputs: PlaylistExternalOutputObject[];
 }
 
-declare interface Playlist extends PlaylistData {}
+declare interface Playlist extends PlaylistData {
+  tags: () => Promise<Tag[]>;
+  tag: (id: GraphqlQueryId) => Promise<Tag>;
+  mediaObjects: () => Promise<MediaObject[]>;
+  mediaObject: (id: GraphqlQueryId) => Promise<MediaObject>;
+}
 
 // GraphQL Inputs
 declare interface CreatePlaylistInput {
@@ -20,7 +27,7 @@ declare interface UpdatePlaylistInput {
   id: string;
   name?: string;
   description?: string;
-  // filter?: string; // TODO: Support Filter Updates Later
+  filter?: string;
 }
 
 declare interface DeletePlaylistInput {

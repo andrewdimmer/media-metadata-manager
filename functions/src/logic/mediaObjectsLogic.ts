@@ -5,11 +5,23 @@ import {
   readMediaObjectFirestore,
   updateMediaObjectFirestore,
 } from "../firebase/mediaObjectsDAO";
-import { readTagFirestore } from "../firebase/tagsDAO";
-import { removeItemFromArray } from "../utils/arrayUtils";
+import { playlistsQueries } from "../graphql/playlists";
+import { tagsQueries } from "../graphql/tags";
+import { checkIfMediaObejctMatchesFilter } from "../utils/advancedQueryUtilts";
+import {
+  diffArrays,
+  removeItemFromArray,
+  subtractArrays,
+  unionArrayOfArrays,
+  unionArrays,
+} from "../utils/arrayUtils";
 import { logAndThrowError } from "../utils/errorHandlingUtils";
 import { validateStringOrArrayIsNotEmpty } from "../utils/genericValidationUtils";
-import { convertTagDataToTag, createNewOrUpdateTags } from "./tagsLogic";
+import {
+  addMediaObjectToPlaylist,
+  removeMediaObjectFromPlaylist,
+} from "./playlistsLogic";
+import { createNewOrUpdateTags } from "./tagsLogic";
 
 const generateMediaObjectId = () => {
   return `MEDIA_${uuid()}`;
@@ -18,15 +30,15 @@ const generateMediaObjectId = () => {
 export const convertMediaObjectDataToMediaObject = (
   mediaObjectData: MediaObjectData
 ): MediaObject => {
-  const tagIds = mediaObjectData.creatorTagIds
-    .concat(mediaObjectData.genreTagIds)
-    .concat(mediaObjectData.customTagIds)
-    .concat(mediaObjectData.specialTagIds);
+  const allTagIds = consolidateTagsToSingleArray(mediaObjectData);
 
   return {
     ...mediaObjectData,
-    tags: tags(mediaObjectData.id, tagIds),
-    tag: tag(mediaObjectData.id, tagIds),
+    allTagIds,
+    tags: tags(mediaObjectData.id, allTagIds),
+    tag: tag(mediaObjectData.id, allTagIds),
+    playlists: playlists(mediaObjectData),
+    playlist: playlist(mediaObjectData),
   };
 };
 
@@ -38,26 +50,44 @@ export const convertMediaObjectDataArrayToMediaObjectArray = (
   });
 };
 
-const tags = (mediaObjectId: string, tagIds: string[]) => async () => {
+const tags = (mediaObjectId: string, allTagIds: string[]) => async () => {
   return Promise.all(
-    tagIds.map((tagId) => {
-      return tag(mediaObjectId, tagIds)({ id: tagId });
+    allTagIds.map((tagId) => {
+      return tag(mediaObjectId, allTagIds)({ id: tagId });
     })
   );
 };
 
 const tag =
-  (mediaObjectId: string, tagIds: string[]) =>
+  (mediaObjectId: string, allTagIds: string[]) =>
   async ({ id }: GraphqlQueryId) => {
-    validateStringOrArrayIsNotEmpty(id, "tag id");
-    if (!tagIds.includes(id)) {
+    if (!allTagIds.includes(id)) {
       logAndThrowError(
-        `The media object with id=${mediaObjectId} is not tagged with the tag with id=${id}`
+        `The media object with id=${mediaObjectId} is not tagged with the tag with id=${id}.`
       );
     }
 
-    const tagData = await readTagFirestore(id);
-    return convertTagDataToTag(tagData);
+    return tagsQueries.tag({ id });
+  };
+
+const playlists = (mediaObjectData: MediaObjectData) => async () => {
+  return Promise.all(
+    mediaObjectData.playlistIds.map((playlistId) => {
+      return playlist(mediaObjectData)({ id: playlistId });
+    })
+  );
+};
+
+const playlist =
+  (mediaObjectData: MediaObjectData) =>
+  async ({ id }: GraphqlQueryId) => {
+    if (!mediaObjectData.playlistIds.includes(id)) {
+      logAndThrowError(
+        `The media object with id=${mediaObjectData.id} is not tagged with the tag with id=${id}.`
+      );
+    }
+
+    return playlistsQueries.playlist({ id });
   };
 
 export const createMediaObjectFromInput = async (
@@ -80,7 +110,21 @@ export const createMediaObjectFromInput = async (
       customTagIds: [],
       specialTagIds: [],
       sources: [],
+      playlistIds: [],
     });
+
+  // Handle Playlist Content Population if required
+  const playlistIds = await processPlaylists(
+    mediaObjectId,
+    consolidateTagsToSingleArray({
+      creatorTagIds,
+      genreTagIds,
+      customTagIds,
+      specialTagIds,
+    }),
+    [],
+    []
+  );
 
   // Create Media Object
   const newMediaObject = await createMediaObjectFirestore({
@@ -92,6 +136,7 @@ export const createMediaObjectFromInput = async (
     specialTagIds,
     externalResources: input.externalResources,
     sources: input.sources,
+    playlistIds,
   });
 
   return newMediaObject;
@@ -109,6 +154,19 @@ export const updateMediaObjectFromInput = async (
   const { creatorTagIds, genreTagIds, customTagIds, specialTagIds } =
     await processTabs(input, existingMediaObject);
 
+  // Handle Playlist Content Population if required
+  const playlistIds = await processPlaylists(
+    input.id,
+    consolidateTagsToSingleArray({
+      creatorTagIds,
+      genreTagIds,
+      customTagIds,
+      specialTagIds,
+    }),
+    consolidateTagsToSingleArray(existingMediaObject),
+    existingMediaObject.playlistIds
+  );
+
   // Update Media Object
   const newMediaObject = await updateMediaObjectFirestore({
     id: input.id,
@@ -122,6 +180,7 @@ export const updateMediaObjectFromInput = async (
         ? input.externalResources
         : existingMediaObject.externalResources,
     sources: input.sources || existingMediaObject.sources,
+    playlistIds,
   });
 
   return newMediaObject;
@@ -146,6 +205,14 @@ export const deleteMediaObjectFromInput = async (
       specialTagIdsOrNames: [],
     },
     mediaObjectData
+  );
+
+  // Propagate Deletion through the Playlists
+  await processPlaylists(
+    input.id,
+    [],
+    consolidateTagsToSingleArray(mediaObjectData),
+    mediaObjectData.playlistIds
   );
 
   return mediaObjectData;
@@ -230,4 +297,118 @@ export const removeTagUponTagDeletion = async (
 
   // Update the media object
   return await updateMediaObjectFirestore(mediaObjectData);
+};
+
+export const addPlaylistToMediaObject = async (
+  playlistId: string,
+  mediaObjectId: string
+) => {
+  const mediaObjectData = await readMediaObjectFirestore(mediaObjectId);
+  if (!mediaObjectData.playlistIds.includes(playlistId)) {
+    mediaObjectData.playlistIds.push(playlistId);
+  }
+  return await updateMediaObjectFirestore(mediaObjectData);
+};
+
+export const removePlaylistFromMediaObject = async (
+  playlistId: string,
+  mediaObjectId: string
+) => {
+  const mediaObjectData = await readMediaObjectFirestore(mediaObjectId);
+  mediaObjectData.playlistIds = removeItemFromArray(
+    mediaObjectData.playlistIds,
+    playlistId
+  );
+  return await updateMediaObjectFirestore(mediaObjectData);
+};
+
+export const consolidateTagsToSingleArray = (mediaObjectData: {
+  creatorTagIds: string[];
+  genreTagIds: string[];
+  customTagIds: string[];
+  specialTagIds: string[];
+}) => {
+  return mediaObjectData.creatorTagIds
+    .concat(mediaObjectData.genreTagIds)
+    .concat(mediaObjectData.customTagIds)
+    .concat(mediaObjectData.specialTagIds);
+};
+
+const processPlaylists = async (
+  mediaObjectId: string,
+  newTagIds: string[],
+  oldTagIds: string[],
+  oldPlaylistIds: string[]
+) => {
+  // Determine what tags have changed
+  // If the tag has not changed, we don't need to check the playlists that use it.
+  const tagsDiff = diffArrays(oldTagIds, newTagIds);
+
+  // Get the tag data of added and removed tags
+  const tagDataOfAddedItems = tagsDiff.addedItems.map((tagId) => {
+    return tagsQueries.tag({ id: tagId });
+  });
+  const tagDataOfDeletedItems = tagsDiff.deletedItems.map((tagId) => {
+    return tagsQueries.tag({ id: tagId });
+  });
+  const tagDataOfUpdatedItems = await Promise.all(
+    tagDataOfAddedItems.concat(tagDataOfDeletedItems)
+  );
+
+  // Get and dedup the playlist ids that might have changes
+  const playlistIdsRaw = tagDataOfUpdatedItems.map((tagData) => {
+    return tagData.playlistIds;
+  });
+  const playlistIdsDeduped = unionArrayOfArrays(playlistIdsRaw);
+
+  // Get the playlist data for playlists that may have had the media added or delete
+  const playlistsThatMightHaveChanged = await Promise.all(
+    playlistIdsDeduped.map((playlistId) => {
+      return playlistsQueries.playlist({ id: playlistId });
+    })
+  );
+
+  // Check if the media belongs in any of the playlists that might have changed
+  const changedPlaylistIdsContainingMediaObject =
+    playlistsThatMightHaveChanged.reduce((playlistIds, playlistData) => {
+      if (checkIfMediaObejctMatchesFilter(playlistData.filter, newTagIds)) {
+        playlistIds.push(playlistData.id);
+      }
+      return playlistIds;
+    }, [] as string[]);
+
+  // Get the playlistIds that contain the media
+  // Definitionally, if the media was in the playlist before, and none of the tags
+  // used to filter for the playlist, the media is still in the playlist
+  const unchangedPlaylistIds = subtractArrays(
+    oldPlaylistIds,
+    playlistIdsDeduped
+  );
+  const newPlaylistIdsWithTheMediaObject = unchangedPlaylistIds.concat(
+    changedPlaylistIdsContainingMediaObject
+  );
+
+  // Get the change in playlist ids the media is used in
+  const playlistsDiff = diffArrays(
+    oldPlaylistIds,
+    newPlaylistIdsWithTheMediaObject
+  );
+
+  // Update the playlist objects as required
+  await Promise.all(
+    playlistsDiff.addedItems.map((playlistId) => {
+      return addMediaObjectToPlaylist(mediaObjectId, playlistId);
+    })
+  );
+  await Promise.all(
+    playlistsDiff.deletedItems.map((playlistId) => {
+      return removeMediaObjectFromPlaylist(mediaObjectId, playlistId);
+    })
+  );
+
+  // Update the list of playlist ideas the media is currently in to reflect the addition order
+  return unionArrays(
+    subtractArrays(oldPlaylistIds, playlistsDiff.deletedItems),
+    playlistsDiff.addedItems
+  );
 };
