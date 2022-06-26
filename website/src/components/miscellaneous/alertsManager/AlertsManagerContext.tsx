@@ -16,7 +16,7 @@ export declare type AlertsManagerContextType = {
 const AlertsManagerContext = React.createContext<AlertsManagerContextType>({
   addAlertMessage: () => {
     console.log(
-      "No Provider found for the AlertManagerContext. Please check this call was from within a Provider."
+      "No Provider found for the AlertsManagerContext. Please check this call was from within a Provider."
     );
   },
 });

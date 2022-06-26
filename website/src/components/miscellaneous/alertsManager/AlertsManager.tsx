@@ -53,6 +53,9 @@ const AlertsManager: React.FunctionComponent<AlertsManagerProps> = ({
     setUpdatedAt(Date.now());
   };
 
+  // Use the updatedAt field to eat the "@typescript-eslint/no-unused-vars" error
+  (() => updatedAt)();
+
   return (
     <AlertsManagerContext.Provider value={{ addAlertMessage }}>
       <Container>

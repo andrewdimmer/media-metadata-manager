@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import CustomThemeProvider from "../../styles/CustomThemeProvider";
+import DataManager from "../data/DataManager";
 import AlertsManager from "../miscellaneous/alertsManager/AlertsManager";
 import LoadingScreen from "../miscellaneous/loadingScreen/LoadingScreen";
 
@@ -23,9 +24,11 @@ const ContextWrapper: React.FunctionComponent<ContextWrapperProps> = ({
   return (
     <CustomThemeProvider>
       <Router>
-        {menuAppBar}
         <LoadingScreen>
-          <AlertsManager>{children}</AlertsManager>
+          {menuAppBar}
+          <AlertsManager>
+            <DataManager>{children}</DataManager>
+          </AlertsManager>
         </LoadingScreen>
       </Router>
     </CustomThemeProvider>

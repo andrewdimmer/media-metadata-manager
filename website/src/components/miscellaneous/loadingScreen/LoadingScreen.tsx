@@ -38,7 +38,8 @@ const LoadingScreen: React.FunctionComponent<LoadingScreenProps> = ({
   children,
 }) => {
   // Creates a state to keep track of the current loading message
-  const [loadingMessage, setLoadingMessage] = React.useState<string>("");
+  const [loadingMessage, setLoadingMessage] =
+    React.useState<string>("Fetching data...");
 
   return (
     <LoadingScreenContext.Provider value={{ setLoadingMessage }}>
