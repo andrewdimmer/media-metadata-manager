@@ -8,11 +8,15 @@ declare interface MediaObjectData extends DatabaseNode {
   specialTagIds: string[];
   externalResources?: MediaObjectExternalResource[];
   sources: MediaObjectSource[];
+  playlistIds: string[];
 }
 
 declare interface MediaObject extends MediaObjectData {
+  allTagIds: string[];
   tags: () => Promise<Tag[]>;
   tag: (id: GraphqlQueryId) => Promise<Tag>;
+  playlists: () => Promise<Playlist[]>;
+  playlist: (id: GraphqlQueryId) => Promise<Playlist>;
 }
 
 // GraphQL Inputs

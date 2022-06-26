@@ -5,14 +5,18 @@ export const schemaString = `
   type MediaObject {
     id: ID!
     name: String!
-    creatorTagIds: [String!]!
-    genreTagIds: [String!]!
-    customTagIds: [String!]!
-    specialTagIds: [String!]!
+    allTagIds: [ID!]!
+    creatorTagIds: [ID!]!
+    genreTagIds: [ID!]!
+    customTagIds: [ID!]!
+    specialTagIds: [ID!]!
+    playlistIds: [ID!]!
     externalResources: [MediaObjectExternalResouce!]
     sources: [MediaObjectSource!]!
     tags: [Tag!]!
     tag(id: ID!): Tag!
+    playlists: [Playlist!]!
+    playlist(id: ID!): Playlist!
   }
 
   type MediaObjectExternalResouce {
@@ -24,7 +28,7 @@ export const schemaString = `
     type: MediaObjectSourceType!
     source: MediaObjectSourceSource!
     url: String
-    externalId: String
+    externalId: ID
   }
 
   input CreateMediaObjectInput {
@@ -61,7 +65,7 @@ export const schemaString = `
     type: MediaObjectSourceType!
     source: MediaObjectSourceSource!
     url: String
-    externalId: String
+    externalId: ID
   }
 
   enum MediaObjectSourceType {

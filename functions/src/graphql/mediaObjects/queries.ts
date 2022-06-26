@@ -7,6 +7,7 @@ import {
   convertMediaObjectDataArrayToMediaObjectArray,
   convertMediaObjectDataToMediaObject,
 } from "../../logic/mediaObjectsLogic";
+import { validateStringOrArrayIsNotEmpty } from "../../utils/genericValidationUtils";
 
 const mediaObjects = async (): Promise<MediaObject[]> => {
   logger.info("Running Query: mediaObjects");
@@ -16,6 +17,7 @@ const mediaObjects = async (): Promise<MediaObject[]> => {
 
 const mediaObject = async ({ id }: GraphqlQueryId): Promise<MediaObject> => {
   logger.info(`Running Query: mediaObject(id=${id})`);
+  validateStringOrArrayIsNotEmpty(id, "media object id");
   const mediaObjectData = await readMediaObjectFirestore(id);
   return convertMediaObjectDataToMediaObject(mediaObjectData);
 };

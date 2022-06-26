@@ -4,6 +4,7 @@ import {
   convertTagDataArrayToTagArray,
   convertTagDataToTag,
 } from "../../logic/tagsLogic";
+import { validateStringOrArrayIsNotEmpty } from "../../utils/genericValidationUtils";
 
 const tags = async (): Promise<Tag[]> => {
   logger.info("Running Query: tags");
@@ -13,6 +14,7 @@ const tags = async (): Promise<Tag[]> => {
 
 const tag = async ({ id }: GraphqlQueryId): Promise<Tag> => {
   logger.info(`Running Query: tag(id=${id})`);
+  validateStringOrArrayIsNotEmpty(id, "tag id");
   const tagData = await readTagFirestore(id);
   return convertTagDataToTag(tagData);
 };

@@ -4,11 +4,14 @@ declare interface TagData extends DatabaseNode {
   name: string;
   type: TagType;
   mediaObjectIds: string[];
+  playlistIds: string[];
 }
 
 declare interface Tag extends TagData {
   mediaObjects: () => Promise<MediaObject[]>;
   mediaObject: (id: GraphqlQueryId) => Promise<MediaObject>;
+  playlists: () => Promise<Playlist[]>;
+  playlist: (id: GraphqlQueryId) => Promise<Playlist>;
 }
 
 // GraphQL Inputs

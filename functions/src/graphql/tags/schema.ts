@@ -7,8 +7,11 @@ export const schemaString = `
     name: String!
     type: TagType!
     mediaObjectIds: [String!]!
+    playlistIds: [ID!]!
     mediaObjects: [MediaObject!]!
     mediaObject(id: ID!): MediaObject!
+    playlists: [Playlist!]!
+    playlist(id: ID!): Playlist!
   }
 
   input CreateTagInput {
